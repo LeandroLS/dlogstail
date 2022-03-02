@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"flag"
 	"fmt"
 	"log"
 	"os/exec"
@@ -10,7 +11,14 @@ import (
 
 const ShellToUse = "bash"
 
+func parseFlags() string {
+	strToSearch := flag.String("s", "", "Use -s stringtosearch")
+	flag.Parse()
+	return *strToSearch
+}
+
 func main() {
+	s := parseFlags()
 	err, out, errout := Shellout("docker ps -a --format '{{.ID}}'")
 	if err != nil {
 		log.Fatal(err)
@@ -26,7 +34,7 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		contains := strings.Contains(out, "1")
+		contains := strings.Contains(out, s)
 		if contains {
 			fmt.Println(out)
 		}
