@@ -21,10 +21,15 @@ func parseFlags() string {
 func main() {
 
 	cli, err := client.NewClientWithOpts(client.FromEnv)
+
 	if err != nil {
 		panic(err)
 	}
+
+	stringToSearch := parseFlags()
+
 	reader, err := cli.ContainerLogs(context.Background(), "dcbd8eb49e", types.ContainerLogsOptions{ShowStdout: true, ShowStderr: true})
+
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -38,7 +43,7 @@ func main() {
 	}
 
 	logContentArr := strings.Split(string(logContent), "\n")
-	stringToSearch := parseFlags()
+
 	for _, v := range logContentArr {
 		contains := strings.Contains(v, stringToSearch)
 		if contains {
