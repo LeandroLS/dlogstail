@@ -1,55 +1,40 @@
 package main
 
 import (
-	"bytes"
-	"flag"
+	"context"
 	"fmt"
+	"io"
 	"log"
-	"os/exec"
-	"strings"
+
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/client"
 )
 
-const ShellToUse = "bash"
-
-func parseFlags() string {
-	strToSearch := flag.String("s", "", "Use -s stringtosearch")
-	flag.Parse()
-	return *strToSearch
-}
-
 func main() {
-	s := parseFlags()
-	err, out, errout := Shellout("docker ps -a --format '{{.ID}}'")
+	cli, err := client.NewClientWithOpts(client.FromEnv)
+	if err != nil {
+		panic(err)
+	}
+	reader, err := cli.ContainerLogs(context.Background(), "dcbd8eb49e", types.ContainerLogsOptions{ShowStdout: true, ShowStderr: true})
 	if err != nil {
 		log.Fatal(err)
 	}
-	if len(errout) > 1 {
-		fmt.Println("err", errout)
-	}
-	fmt.Println(errout)
-	containerIds := strings.Fields(out)
-	for _, v := range containerIds {
-		formatedDockerCommand := fmt.Sprintf("docker logs %s", v)
-		err, out, errout := Shellout(formatedDockerCommand)
-		if err != nil {
-			log.Fatal(err)
-		}
-		contains := strings.Contains(out, s)
-		if contains {
-			fmt.Println(out)
-		}
-		if len(errout) > 1 {
-			fmt.Println(errout)
-		}
-	}
-}
 
-func Shellout(command string) (error, string, string) {
-	var stdout bytes.Buffer
-	var stderr bytes.Buffer
-	cmd := exec.Command(ShellToUse, "-c", command)
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
-	err := cmd.Run()
-	return err, stdout.String(), stderr.String()
+	defer reader.Close()
+
+	b, err := io.ReadAll(reader)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(string(b))
+
+	containers, err := cli.ContainerList(context.Background(), types.ContainerListOptions{})
+	if err != nil {
+		panic(err)
+	}
+
+	for _, container := range containers {
+		fmt.Printf("%s %s\n", container.ID[:10], container.Image)
+	}
 }
