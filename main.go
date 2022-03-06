@@ -27,37 +27,48 @@ func main() {
 	}
 
 	stringToSearch := parseFlags()
+	var oldLogContent string
 
-	reader, err := cli.ContainerLogs(context.Background(), "dcbd8eb49e", types.ContainerLogsOptions{ShowStdout: true, ShowStderr: true})
+	for true {
+		reader, err := cli.ContainerLogs(context.Background(), "dcbd8eb49e", types.ContainerLogsOptions{ShowStdout: true, ShowStderr: true})
 
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer reader.Close()
-
-	logContent, err := io.ReadAll(reader)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	logContentArr := strings.Split(string(logContent), "\n")
-
-	for _, v := range logContentArr {
-		contains := strings.Contains(v, stringToSearch)
-		if contains {
-			fmt.Println(v)
+		if err != nil {
+			log.Fatal(err)
 		}
+
+		defer reader.Close()
+
+		logContent, err := io.ReadAll(reader)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		logContentIsSame := strings.Compare(oldLogContent, string(logContent))
+
+		if logContentIsSame == -1 {
+			logContentArr := strings.Split(string(logContent), "\n")
+
+			for _, v := range logContentArr {
+				contains := strings.Contains(v, stringToSearch)
+				if contains {
+					fmt.Println(v)
+				}
+			}
+
+			containers, err := cli.ContainerList(context.Background(), types.ContainerListOptions{})
+
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			for _, container := range containers {
+				fmt.Printf("%s %s\n", container.ID[:10], container.Image)
+			}
+
+			oldLogContent = string(logContent)
+		}
+
 	}
 
-	containers, err := cli.ContainerList(context.Background(), types.ContainerListOptions{})
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	for _, container := range containers {
-		fmt.Printf("%s %s\n", container.ID[:10], container.Image)
-	}
 }
