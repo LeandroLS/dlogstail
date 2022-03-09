@@ -6,7 +6,10 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net/http"
+	"os"
 	"strings"
+	"text/template"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
@@ -18,8 +21,7 @@ func parseFlags() string {
 	return *strToSearch
 }
 
-func main() {
-
+func getLogs() {
 	cli, err := client.NewClientWithOpts(client.FromEnv)
 
 	if err != nil {
@@ -71,4 +73,30 @@ func main() {
 
 	}
 
+}
+
+func indexHandler(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("<h1>Hello World!</h1>"))
+}
+
+func homePageHandler(w http.ResponseWriter, r *http.Request) {
+	h := HomePage{Teste: "teste", ContainerNames: []string{"container1", "container2"}}
+	t, err := template.ParseFiles("home.html")
+	fmt.Println(err)
+	t.Execute(w, h)
+}
+
+type HomePage struct {
+	ContainerNames []string
+	Teste          string
+}
+
+func main() {
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "3001"
+	}
+	http.HandleFunc("/", indexHandler)
+	http.HandleFunc("/home", homePageHandler)
+	http.ListenAndServe(":"+port, nil)
 }
