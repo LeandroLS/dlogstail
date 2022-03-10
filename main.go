@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
@@ -80,10 +81,32 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func homePageHandler(w http.ResponseWriter, r *http.Request) {
-	h := HomePage{Teste: "teste", ContainerNames: []string{"container1", "container2"}}
+	h := HomePage{ContainerNames: []string{"container1", "container2"}}
 	t, err := template.ParseFiles("home.html")
 	fmt.Println(err)
 	t.Execute(w, h)
+}
+
+type Container struct {
+	Name string
+	Id   string
+}
+
+type Containers []Container
+
+func allContainers(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("allcontainers")
+	containers := Containers{
+		Container{
+			Name: "Teste1",
+			Id:   "123",
+		},
+		Container{
+			Name: "Teste2",
+			Id:   "123",
+		},
+	}
+	json.NewEncoder(w).Encode(containers)
 }
 
 type HomePage struct {
@@ -98,5 +121,6 @@ func main() {
 	}
 	http.HandleFunc("/", indexHandler)
 	http.HandleFunc("/home", homePageHandler)
+	http.HandleFunc("/containers", allContainers)
 	http.ListenAndServe(":"+port, nil)
 }

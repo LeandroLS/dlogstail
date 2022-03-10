@@ -7,10 +7,37 @@
     <title>Document</title>
 </head>
 <body>
-    <h1> Olá  porra</h1>
-    <h1>{{ .Teste }}</h1>
-    {{ range $v := .ContainerNames }}
-        <h1>{{ $v }}</h1>
-    {{ end }}
+    <h1> Container List </h1>
+    <ul>
+        {{ range $name := .ContainerNames }}
+            <li> {{ $name }}</li>
+        {{ end }}
+    </ul>
 </body>
+<script src="https://unpkg.com/vue@3"></script>
+
+<div id="app">
+    <ul v-for="container in containers">
+        <li> [[ container.Name ]] </li>
+    </ul>    
+</div>
+
+
+<script>
+  Vue.createApp({
+    data() {
+      return {
+        containers: []
+      }
+    },
+    delimiters: ['[[', ']]'],
+    mounted() {
+        fetch("/containers")
+        .then(containers => containers.json())
+        .then(containers => this.containers = containers)
+        return console.log('montado')
+    }
+
+  }).mount('#app')
+</script>
 </html>
