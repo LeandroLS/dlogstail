@@ -8,7 +8,6 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"os"
 	"strings"
 	"text/template"
 
@@ -90,23 +89,59 @@ func homePageHandler(w http.ResponseWriter, r *http.Request) {
 type Container struct {
 	Name string
 	Id   string
+	Log  string
 }
 
 type Containers []Container
 
-func allContainers(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("allcontainers")
-	containers := Containers{
-		Container{
-			Name: "Teste1",
-			Id:   "123",
-		},
-		Container{
-			Name: "Teste2",
-			Id:   "123",
-		},
+func containers(w http.ResponseWriter, r *http.Request) {
+
+	var containers Containers
+
+	cli, err := client.NewClientWithOpts(client.FromEnv)
+
+	containersRaw, err := cli.ContainerList(context.Background(), types.ContainerListOptions{})
+
+	if err != nil {
+		log.Fatal(err)
 	}
+
+	for _, container := range containersRaw {
+
+		containers = append(containers, Container{Name: container.Names[0], Id: container.ID})
+	}
+
 	json.NewEncoder(w).Encode(containers)
+}
+
+//todo get container information dynamically
+func container(w http.ResponseWriter, r *http.Request) {
+
+	queryValues := r.URL.Query()
+
+	cli, err := client.NewClientWithOpts(client.FromEnv)
+
+	reader, err := cli.ContainerLogs(context.Background(), queryValues["id"][0], types.ContainerLogsOptions{ShowStdout: true, ShowStderr: true})
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer reader.Close()
+
+	logContent, err := io.ReadAll(reader)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	container := Container{
+		Name: "Teste1",
+		Id:   "123",
+		Log:  string(logContent),
+	}
+
+	json.NewEncoder(w).Encode(container)
 }
 
 type HomePage struct {
@@ -115,12 +150,9 @@ type HomePage struct {
 }
 
 func main() {
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "3001"
-	}
 	http.HandleFunc("/", indexHandler)
 	http.HandleFunc("/home", homePageHandler)
-	http.HandleFunc("/containers", allContainers)
-	http.ListenAndServe(":"+port, nil)
+	http.HandleFunc("/containers", containers)
+	http.HandleFunc("/container", container)
+	http.ListenAndServe(":3001", nil)
 }

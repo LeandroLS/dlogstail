@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>dlogstail</title>
 </head>
 <body>
-    <h1> Container List </h1>
+    <h1> Containers List </h1>
     <ul>
         {{ range $name := .ContainerNames }}
             <li> {{ $name }}</li>
@@ -18,8 +18,10 @@
 
 <div id="app">
     <ul v-for="container in containers">
-        <li> [[ container.Name ]] </li>
-    </ul>    
+        <li> <button @click="getContainer(container)">[[ container.Name ]]</button> </li>
+    </ul>
+    <textarea v-model="container.Log" name="" id="" cols="30" rows="10"></textarea>
+
 </div>
 
 
@@ -27,15 +29,24 @@
   Vue.createApp({
     data() {
       return {
-        containers: []
+        containers: [],
+        container: {}
       }
     },
+    methods: {
+      getContainer(container){
+        console.log("get container", container.Id)
+        fetch(`/container?id=${container.Id}`)
+        .then(container => container.json())
+        .then(container => this.container = container)
+      }
+
+    }, 
     delimiters: ['[[', ']]'],
     mounted() {
         fetch("/containers")
         .then(containers => containers.json())
         .then(containers => this.containers = containers)
-        return console.log('montado')
     }
 
   }).mount('#app')
