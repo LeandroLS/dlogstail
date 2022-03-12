@@ -76,29 +76,34 @@ func getLogs() {
 }
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("<h1>Hello World!</h1>"))
-}
-
-func homePageHandler(w http.ResponseWriter, r *http.Request) {
-	h := HomePage{ContainerNames: []string{"container1", "container2"}}
 	t, err := template.ParseFiles("home.html")
-	fmt.Println(err)
-	t.Execute(w, h)
+	if err != nil {
+		log.Fatal(err)
+	}
+	t.Execute(w, nil)
 }
 
 type Container struct {
-	Name string
-	Id   string
-	Log  string
+	Name  string
+	Id    string
+	Image string
 }
 
 type Containers []Container
 
-func containers(w http.ResponseWriter, r *http.Request) {
+type Logs struct {
+	Content string
+}
+
+func containersHandler(w http.ResponseWriter, r *http.Request) {
 
 	var containers Containers
 
 	cli, err := client.NewClientWithOpts(client.FromEnv)
+
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	containersRaw, err := cli.ContainerList(context.Background(), types.ContainerListOptions{})
 
@@ -108,20 +113,24 @@ func containers(w http.ResponseWriter, r *http.Request) {
 
 	for _, container := range containersRaw {
 
-		containers = append(containers, Container{Name: container.Names[0], Id: container.ID})
+		containers = append(containers, Container{Name: container.Names[0], Id: container.ID, Image: container.Image})
 	}
 
 	json.NewEncoder(w).Encode(containers)
 }
 
 //todo get container information dynamically
-func container(w http.ResponseWriter, r *http.Request) {
+func logsHandler(w http.ResponseWriter, r *http.Request) {
 
 	queryValues := r.URL.Query()
 
 	cli, err := client.NewClientWithOpts(client.FromEnv)
 
-	reader, err := cli.ContainerLogs(context.Background(), queryValues["id"][0], types.ContainerLogsOptions{ShowStdout: true, ShowStderr: true})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	reader, err := cli.ContainerLogs(context.Background(), queryValues["container_id"][0], types.ContainerLogsOptions{ShowStdout: true, ShowStderr: true})
 
 	if err != nil {
 		log.Fatal(err)
@@ -135,24 +144,14 @@ func container(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
-	container := Container{
-		Name: "Teste1",
-		Id:   "123",
-		Log:  string(logContent),
-	}
+	logs := Logs{Content: string(logContent)}
 
-	json.NewEncoder(w).Encode(container)
-}
-
-type HomePage struct {
-	ContainerNames []string
-	Teste          string
+	json.NewEncoder(w).Encode(logs)
 }
 
 func main() {
 	http.HandleFunc("/", indexHandler)
-	http.HandleFunc("/home", homePageHandler)
-	http.HandleFunc("/containers", containers)
-	http.HandleFunc("/container", container)
+	http.HandleFunc("/containers", containersHandler)
+	http.HandleFunc("/logs", logsHandler)
 	http.ListenAndServe(":3001", nil)
 }
