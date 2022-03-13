@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>dlogstail</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+</head>
+
+<body>
+  <div id="app">
+    <div class="container">
+      <h1 class="text-center">Containers List</h1>
+      <ul class="list-group">
+        <template v-if="containers.length < 1">
+          <h3>No container found</h3>
+        </template>
+        <template v-else>
+          <template v-for="container in containers">
+            <li class="list-group-item">
+              <div class="row">
+                <div class="col">
+                  <button class="btn btn-info text-white" @click="getSelectedContainer(container)">[[ container.Name
+                    ]]</button>
+                </div>
+                <div class="col">
+                  <button class="btn btn-info text-white" @click="getSelectedContainer(container)">[[ container.Id
+                    ]]</button>
+                </div>
+                <div class="col">
+                  <button class="btn btn-info text-white" @click="getSelectedContainer(container)">[[ container.Image
+                    ]]</button>
+                </div>
+              </div>
+            </li>
+          </template>
+          <template v-if="logs && logs.LineByLine">
+            <div class="form-check">
+              <input class="form-check-input" v-model="autoRefresh" type="checkbox" value="" id="flexCheckDefault">
+              <label class="form-check-label" for="flexCheckDefault">
+                Auto-Refresh Logs
+              </label>
+            </div>
+            <div class="border rounded mt-1 overflow-auto" style="height: 400px;">
+              <template v-for="logs in logs.LineByLine">
+                <p class="mt-0 mb-0 mx-1"> [[logs]]</p>
+              </template>
+            </div>
+          </template>
+        </template>
+      </ul>
+    </div>
+
+</body>
+<script src="https://unpkg.com/vue@3"></script>
+
+</div>
+
+
+<script>
+  Vue.createApp({
+    data() {
+      return {
+        containers: [],
+        logs: {},
+        selectedContainer: {},
+        autoRefresh: false,
+        intervalId: 0
+      }
+    },
+    methods: {
+      getContainerLogs(container) {
+        fetch(`/logs?container_id=${container.Id}`)
+          .then(logs => logs.json())
+          .then(logs => this.logs = logs)
+      },
+      getSelectedContainer(container) {
+        this.selectedContainer = container
+        this.getContainerLogs(container)
+      }
+
+    },
+    watch: {
+      autoRefresh(newValue, oldValue) {
+        let interval
+        if (newValue === true) {
+          this.intervalId = setInterval(() => {
+            this.getContainerLogs(this.selectedContainer)
+          }, 2000);
+          console.log(interval)
+        } else {
+          console.log(interval)
+          clearInterval(this.intervalId)
+        }
+      }
+    },
+    mounted() {
+      fetch("/containers")
+        .then(containers => containers.json())
+        .then(containers => this.containers = containers)
+    },
+    delimiters: ['[[', ']]']
+
+  }).mount('#app')
+</script>
+
+</html>
