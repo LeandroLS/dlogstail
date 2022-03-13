@@ -15,7 +15,10 @@
     <div class="container">
       <h1 class="text-center">Containers List</h1>
       <ul class="list-group">
-        <template v-for="container in containers">
+        <template v-if="containers.length < 1">
+          <h3>No container found</h3>
+        </template>
+        <template v-else v-for="container in containers">
           <li class="list-group-item">
             <div class="row">
               <div class="col">
@@ -25,14 +28,18 @@
                 <button class="btn btn-info text-white" @click="getContainer(container)">[[ container.Id ]]</button>
               </div>
               <div class="col">
-                <button class="btn btn-info text-white" @click="getContainer(container)">[[ container.Image ]]</button>
+                <button class="btn btn-info text-white" @click="getContainer(container)">[[ container.Image
+                  ]]</button>
               </div>
             </div>
           </li>
+          <div class="border rounded mt-1 overflow-auto" style="height: 400px;" v-if="logs && logs.LineByLine">
+            <template v-for="logs in logs.LineByLine">
+              <p class="mt-0 mb-0 mx-1"> [[logs]]</p>
+            </template>
+          </div>
         </template>
       </ul>
-
-      <textarea class="form-control mt-1" v-model="logs.Content" name="" id="" cols="30" rows="10"></textarea>
     </div>
 
 </body>

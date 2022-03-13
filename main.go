@@ -75,14 +75,6 @@ func getLogs() {
 
 }
 
-func indexHandler(w http.ResponseWriter, r *http.Request) {
-	t, err := template.ParseFiles("home.html")
-	if err != nil {
-		log.Fatal(err)
-	}
-	t.Execute(w, nil)
-}
-
 type Container struct {
 	Name  string
 	Id    string
@@ -92,7 +84,16 @@ type Container struct {
 type Containers []Container
 
 type Logs struct {
-	Content string
+	Content    string
+	LineByLine []string
+}
+
+func indexHandler(w http.ResponseWriter, r *http.Request) {
+	t, err := template.ParseFiles("home.html")
+	if err != nil {
+		log.Fatal(err)
+	}
+	t.Execute(w, nil)
 }
 
 func containersHandler(w http.ResponseWriter, r *http.Request) {
@@ -140,12 +141,17 @@ func logsHandler(w http.ResponseWriter, r *http.Request) {
 
 	logContent, err := io.ReadAll(reader)
 
+	logsSplitedByNewLine := strings.Split(string(logContent), "\n")
+
+	for i, v := range logsSplitedByNewLine {
+		logsSplitedByNewLine[i] = strings.TrimSpace(v)
+	}
+
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	logs := Logs{Content: string(logContent)}
-
+	logs := Logs{Content: string(logContent), LineByLine: logsSplitedByNewLine}
 	json.NewEncoder(w).Encode(logs)
 }
 
