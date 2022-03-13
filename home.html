@@ -11,32 +11,32 @@
 </head>
 
 <body>
-  <h1> Containers List </h1>
+  <div id="app">
+    <div class="container">
+      <h1 class="text-center">Containers List</h1>
+      <ul class="list-group">
+        <template v-for="container in containers">
+          <li class="list-group-item">
+            <div class="row">
+              <div class="col">
+                <button class="btn btn-info text-white" @click="getContainer(container)">[[ container.Name ]]</button>
+              </div>
+              <div class="col">
+                <button class="btn btn-info text-white" @click="getContainer(container)">[[ container.Id ]]</button>
+              </div>
+              <div class="col">
+                <button class="btn btn-info text-white" @click="getContainer(container)">[[ container.Image ]]</button>
+              </div>
+            </div>
+          </li>
+        </template>
+      </ul>
+
+      <textarea class="form-control mt-1" v-model="logs.Content" name="" id="" cols="30" rows="10"></textarea>
+    </div>
+
 </body>
 <script src="https://unpkg.com/vue@3"></script>
-
-<div id="app">
-  <div class="container">
-    <template v-for="container in containers">
-      <div class="row">
-        <div class="col">
-          <button class="btn btn-info text-white" @click="getContainer(container)">[[ container.Name ]]</button>
-        </div>
-        <div class="col">
-          <button class="btn btn-info text-white" @click="getContainer(container)">[[ container.Id ]]</button>
-        </div>
-        <div class="col">
-          <button class="btn btn-info text-white" @click="getContainer(container)">[[ container.Image ]]</button>
-        </div>
-      </div>
-    </template>
-
-  </div>
-
-  <ul>
-    <!-- <li> <button @click="getContainer(container)">[[ container.Name ]]</button> </li> -->
-  </ul>
-  <textarea v-model="logs.Content" name="" id="" cols="30" rows="10"></textarea>
 
 </div>
 
