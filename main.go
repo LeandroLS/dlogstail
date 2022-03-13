@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -52,13 +53,12 @@ func containersHandler(w http.ResponseWriter, r *http.Request) {
 
 	for _, container := range containersRaw {
 
-		containers = append(containers, Container{Name: container.Names[0], Id: container.ID, Image: container.Image})
+		containers = append(containers, Container{Name: container.Names[0], Id: container.ID[:15], Image: container.Image})
 	}
 
 	json.NewEncoder(w).Encode(containers)
 }
 
-//todo get container information dynamically
 func logsHandler(w http.ResponseWriter, r *http.Request) {
 
 	queryValues := r.URL.Query()
@@ -97,5 +97,6 @@ func main() {
 	http.HandleFunc("/", indexHandler)
 	http.HandleFunc("/containers", containersHandler)
 	http.HandleFunc("/logs", logsHandler)
+	fmt.Println("dlogstail is running")
 	http.ListenAndServe(":3001", nil)
 }

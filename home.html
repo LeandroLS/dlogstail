@@ -18,26 +18,38 @@
         <template v-if="containers.length < 1">
           <h3>No container found</h3>
         </template>
-        <template v-else v-for="container in containers">
-          <li class="list-group-item">
-            <div class="row">
-              <div class="col">
-                <button class="btn btn-info text-white" @click="getContainer(container)">[[ container.Name ]]</button>
+        <template v-else>
+          <template v-for="container in containers">
+            <li class="list-group-item">
+              <div class="row">
+                <div class="col">
+                  <button class="btn btn-info text-white" @click="getSelectedContainer(container)">[[ container.Name
+                    ]]</button>
+                </div>
+                <div class="col">
+                  <button class="btn btn-info text-white" @click="getSelectedContainer(container)">[[ container.Id
+                    ]]</button>
+                </div>
+                <div class="col">
+                  <button class="btn btn-info text-white" @click="getSelectedContainer(container)">[[ container.Image
+                    ]]</button>
+                </div>
               </div>
-              <div class="col">
-                <button class="btn btn-info text-white" @click="getContainer(container)">[[ container.Id ]]</button>
-              </div>
-              <div class="col">
-                <button class="btn btn-info text-white" @click="getContainer(container)">[[ container.Image
-                  ]]</button>
-              </div>
+            </li>
+          </template>
+          <template v-if="logs && logs.LineByLine">
+            <div class="form-check">
+              <input class="form-check-input" v-model="autoRefresh" type="checkbox" value="" id="flexCheckDefault">
+              <label class="form-check-label" for="flexCheckDefault">
+                Auto-Refresh Logs
+              </label>
             </div>
-          </li>
-          <div class="border rounded mt-1 overflow-auto" style="height: 400px;" v-if="logs && logs.LineByLine">
-            <template v-for="logs in logs.LineByLine">
-              <p class="mt-0 mb-0 mx-1"> [[logs]]</p>
-            </template>
-          </div>
+            <div class="border rounded mt-1 overflow-auto" style="height: 400px;">
+              <template v-for="logs in logs.LineByLine">
+                <p class="mt-0 mb-0 mx-1"> [[logs]]</p>
+              </template>
+            </div>
+          </template>
         </template>
       </ul>
     </div>
@@ -53,15 +65,20 @@
     data() {
       return {
         containers: [],
-        logs: {}
+        logs: {},
+        selectedContainer: {},
+        autoRefresh: false
       }
     },
     methods: {
-      getContainer(container) {
-        console.log("get container", container.Id)
+      getContainerLogs(container) {
         fetch(`/logs?container_id=${container.Id}`)
           .then(logs => logs.json())
           .then(logs => this.logs = logs)
+      },
+      getSelectedContainer(container) {
+        this.selectedContainer = container
+        this.getContainerLogs(container)
       }
 
     },
