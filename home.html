@@ -67,7 +67,8 @@
         containers: [],
         logs: {},
         selectedContainer: {},
-        autoRefresh: false
+        autoRefresh: false,
+        intervalId: 0
       }
     },
     methods: {
@@ -82,12 +83,26 @@
       }
 
     },
-    delimiters: ['[[', ']]'],
+    watch: {
+      autoRefresh(newValue, oldValue) {
+        let interval
+        if (newValue === true) {
+          this.intervalId = setInterval(() => {
+            this.getContainerLogs(this.selectedContainer)
+          }, 2000);
+          console.log(interval)
+        } else {
+          console.log(interval)
+          clearInterval(this.intervalId)
+        }
+      }
+    },
     mounted() {
       fetch("/containers")
         .then(containers => containers.json())
         .then(containers => this.containers = containers)
-    }
+    },
+    delimiters: ['[[', ']]']
 
   }).mount('#app')
 </script>
