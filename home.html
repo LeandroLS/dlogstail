@@ -38,11 +38,9 @@
             </li>
           </template>
           <template v-if="logs && logs.LineByLine">
-            <div class="form-check">
-              <input class="form-check-input" v-model="autoRefresh" type="checkbox" value="" id="flexCheckDefault">
-              <label class="form-check-label" for="flexCheckDefault">
-                Auto-Refresh Logs
-              </label>
+            <div class="form-check form-switch">
+              <input class="form-check-input" v-model="autoRefresh" type="checkbox" id="flexSwitchCheckDefault">
+              <label class="form-check-label" for="flexSwitchCheckDefault">Auto-Refresh Logs</label>
             </div>
             <div class="border rounded mt-1 overflow-auto" style="height: 400px;" id="logsDiv">
               <template v-for="logs in logs.LineByLine">
