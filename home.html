@@ -42,6 +42,9 @@
               <input class="form-check-input" v-model="autoRefresh" type="checkbox" id="flexSwitchCheckDefault">
               <label class="form-check-label" for="flexSwitchCheckDefault">Auto-Refresh Logs</label>
             </div>
+            <!-- <label for="">Number of Lines</label>
+            <input type="number" v-model="numberOfLines" class="form-control">
+            <button class="btn btn-info text-white">Refresh</button> -->
             <div class="border rounded mt-1 overflow-auto" style="height: 400px;" id="logsDiv">
               <template v-for="logs in logs.LineByLine">
                 <p class="mt-0 mb-0 mx-1"> [[logs]]</p>

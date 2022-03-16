@@ -36,59 +36,41 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func containersHandler(w http.ResponseWriter, r *http.Request) {
-
 	var containers Containers
-
 	cli, err := client.NewClientWithOpts(client.FromEnv)
-
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	containersRaw, err := cli.ContainerList(context.Background(), types.ContainerListOptions{})
-
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	for _, container := range containersRaw {
-
 		containers = append(containers, Container{Name: container.Names[0], Id: container.ID[:15], Image: container.Image})
 	}
-
 	json.NewEncoder(w).Encode(containers)
 }
 
 func logsHandler(w http.ResponseWriter, r *http.Request) {
-
 	queryValues := r.URL.Query()
 
 	cli, err := client.NewClientWithOpts(client.FromEnv)
-
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	reader, err := cli.ContainerLogs(context.Background(), queryValues["container_id"][0], types.ContainerLogsOptions{ShowStdout: true, ShowStderr: true})
-
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	defer reader.Close()
-
 	logContent, err := io.ReadAll(reader)
-
 	logsSplitedByNewLine := strings.Split(string(logContent), "\n")
-
 	for i, v := range logsSplitedByNewLine {
 		logsSplitedByNewLine[i] = strings.TrimSpace(v)
 	}
-
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	logs := Logs{Content: string(logContent), LineByLine: logsSplitedByNewLine}
 	json.NewEncoder(w).Encode(logs)
 }
