@@ -58,10 +58,9 @@ func tailLog(logs []string, newLogsLenght int) []string {
 }
 
 func logsHandler(w http.ResponseWriter, r *http.Request) {
-	queryValues := r.URL.Query()
-	containerId := queryValues["container_id"][0]
-	numberOfLinesS := queryValues["number_of_lines"][0]
-	//todo remover essa var
+	containerId := r.URL.Query().Get("container_id")
+	numberOfLinesS := r.URL.Query().Get("number_of_lines")
+	//find a way to delete this var
 	var numberOfLinesI int
 	if numberOfLinesS != "" {
 		numberOfLinesI, _ = strconv.Atoi(numberOfLinesS)
