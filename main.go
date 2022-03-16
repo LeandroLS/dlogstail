@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 	"text/template"
 
@@ -51,20 +52,35 @@ func containersHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(containers)
 }
 
+func tailLog(logs []string, newLogsLenght int) []string {
+	diff := len(logs) - newLogsLenght
+	return logs[diff-1 : newLogsLenght+diff]
+}
+
 func logsHandler(w http.ResponseWriter, r *http.Request) {
 	queryValues := r.URL.Query()
-
+	containerId := queryValues["container_id"][0]
+	numberOfLinesS := queryValues["number_of_lines"][0]
+	//todo remover essa var
+	var numberOfLinesI int
+	if numberOfLinesS != "" {
+		numberOfLinesI, _ = strconv.Atoi(numberOfLinesS)
+	}
+	//todo remover esse cli
 	cli, err := client.NewClientWithOpts(client.FromEnv)
 	if err != nil {
 		log.Fatal(err)
 	}
-	reader, err := cli.ContainerLogs(context.Background(), queryValues["container_id"][0], types.ContainerLogsOptions{ShowStdout: true, ShowStderr: true})
+	reader, err := cli.ContainerLogs(context.Background(), containerId, types.ContainerLogsOptions{ShowStdout: true, ShowStderr: true})
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer reader.Close()
 	logContent, err := io.ReadAll(reader)
 	logsSplitedByNewLine := strings.Split(string(logContent), "\n")
+	if numberOfLinesI <= len(logsSplitedByNewLine) {
+		logsSplitedByNewLine = tailLog(logsSplitedByNewLine, numberOfLinesI)
+	}
 	for i, v := range logsSplitedByNewLine {
 		logsSplitedByNewLine[i] = strings.TrimSpace(v)
 	}
