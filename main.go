@@ -32,6 +32,7 @@ type Logs struct {
 var (
 	//go:embed home.html
 	htmlFile embed.FS
+	cli, err = client.NewClientWithOpts(client.FromEnv)
 )
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
@@ -44,7 +45,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 
 func containersHandler(w http.ResponseWriter, r *http.Request) {
 	var containers Containers
-	cli, err := client.NewClientWithOpts(client.FromEnv)
+
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -71,8 +72,6 @@ func logsHandler(w http.ResponseWriter, r *http.Request) {
 	if numberOfLinesS != "" {
 		numberOfLinesI, _ = strconv.Atoi(numberOfLinesS)
 	}
-	//todo remover esse cli
-	cli, err := client.NewClientWithOpts(client.FromEnv)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -97,6 +96,9 @@ func logsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	if err != nil {
+		log.Fatal(err)
+	}
 	http.HandleFunc("/", indexHandler)
 	http.HandleFunc("/containers", containersHandler)
 	http.HandleFunc("/containers/logs", logsHandler)
