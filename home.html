@@ -87,7 +87,7 @@
     },
     methods: {
       getContainerLogs(container) {
-        fetch(`/logs?container_id=${container.Id}&number_of_lines=${this.numberOfLines}`)
+        fetch(`/containers/logs?container_id=${container.Id}&number_of_lines=${this.numberOfLines}`)
           .then(logs => logs.json())
           .then(logs => this.logs = logs)
       },

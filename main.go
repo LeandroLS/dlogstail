@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"embed"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -28,8 +29,13 @@ type Logs struct {
 	LineByLine []string
 }
 
+var (
+	//go:embed home.html
+	htmlFile embed.FS
+)
+
 func indexHandler(w http.ResponseWriter, r *http.Request) {
-	t, err := template.ParseFiles("home.html")
+	t, err := template.ParseFS(htmlFile, "*.html")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -93,7 +99,7 @@ func logsHandler(w http.ResponseWriter, r *http.Request) {
 func main() {
 	http.HandleFunc("/", indexHandler)
 	http.HandleFunc("/containers", containersHandler)
-	http.HandleFunc("/logs", logsHandler)
+	http.HandleFunc("/containers/logs", logsHandler)
 	fmt.Println("dlogstail is running")
 	http.ListenAndServe(":3001", nil)
 }
