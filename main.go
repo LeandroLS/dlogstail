@@ -64,12 +64,7 @@ func tailLog(logs []string, newLogsLenght int) []string {
 
 func logsHandler(w http.ResponseWriter, r *http.Request) {
 	containerId := r.URL.Query().Get("container_id")
-	numberOfLinesS := r.URL.Query().Get("number_of_lines")
-	//find a way to delete this var
-	var numberOfLinesI int
-	if numberOfLinesS != "" {
-		numberOfLinesI, _ = strconv.Atoi(numberOfLinesS)
-	}
+	numberOfLines, _ := strconv.Atoi(r.URL.Query().Get("number_of_lines"))
 	reader, err := cli.ContainerLogs(context.Background(), containerId, types.ContainerLogsOptions{ShowStdout: true, ShowStderr: true})
 	if err != nil {
 		log.Fatal(err)
@@ -80,8 +75,8 @@ func logsHandler(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 	logsSplitedByNewLine := strings.Split(string(logContent), "\n")
-	if numberOfLinesI <= len(logsSplitedByNewLine) {
-		logsSplitedByNewLine = tailLog(logsSplitedByNewLine, numberOfLinesI)
+	if numberOfLines <= len(logsSplitedByNewLine) {
+		logsSplitedByNewLine = tailLog(logsSplitedByNewLine, numberOfLines)
 	}
 	for i, v := range logsSplitedByNewLine {
 		logsSplitedByNewLine[i] = strings.TrimSpace(v)
