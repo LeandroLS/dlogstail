@@ -35,6 +35,8 @@ var (
 	cli, errDocker = client.NewClientWithOpts(client.FromEnv)
 )
 
+const port = 3001
+
 func indexHandler(w http.ResponseWriter, r *http.Request) {
 	t, err := template.ParseFS(htmlFile, "*.html")
 	if err != nil {
@@ -96,6 +98,6 @@ func main() {
 	http.HandleFunc("/", indexHandler)
 	http.HandleFunc("/containers", containersHandler)
 	http.HandleFunc("/containers/logs", logsHandler)
-	fmt.Println("dlogstail is running")
-	http.ListenAndServe(":3001", nil)
+	fmt.Printf("dlogstail is running on port: %v", port)
+	http.ListenAndServe(":"+strconv.Itoa(port), nil)
 }
