@@ -31,8 +31,8 @@ type Logs struct {
 
 var (
 	//go:embed home.html
-	htmlFile embed.FS
-	cli, err = client.NewClientWithOpts(client.FromEnv)
+	htmlFile       embed.FS
+	cli, errDocker = client.NewClientWithOpts(client.FromEnv)
 )
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
@@ -45,10 +45,6 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 
 func containersHandler(w http.ResponseWriter, r *http.Request) {
 	var containers Containers
-
-	if err != nil {
-		log.Fatal(err)
-	}
 	containersRaw, err := cli.ContainerList(context.Background(), types.ContainerListOptions{})
 	if err != nil {
 		log.Fatal(err)
@@ -72,15 +68,15 @@ func logsHandler(w http.ResponseWriter, r *http.Request) {
 	if numberOfLinesS != "" {
 		numberOfLinesI, _ = strconv.Atoi(numberOfLinesS)
 	}
-	if err != nil {
-		log.Fatal(err)
-	}
 	reader, err := cli.ContainerLogs(context.Background(), containerId, types.ContainerLogsOptions{ShowStdout: true, ShowStderr: true})
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer reader.Close()
 	logContent, err := io.ReadAll(reader)
+	if err != nil {
+		log.Fatal(err)
+	}
 	logsSplitedByNewLine := strings.Split(string(logContent), "\n")
 	if numberOfLinesI <= len(logsSplitedByNewLine) {
 		logsSplitedByNewLine = tailLog(logsSplitedByNewLine, numberOfLinesI)
@@ -88,16 +84,14 @@ func logsHandler(w http.ResponseWriter, r *http.Request) {
 	for i, v := range logsSplitedByNewLine {
 		logsSplitedByNewLine[i] = strings.TrimSpace(v)
 	}
-	if err != nil {
-		log.Fatal(err)
-	}
 	logs := Logs{Content: string(logContent), LineByLine: logsSplitedByNewLine}
 	json.NewEncoder(w).Encode(logs)
 }
 
 func main() {
-	if err != nil {
-		log.Fatal(err)
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+	if errDocker != nil {
+		log.Fatal(errDocker)
 	}
 	http.HandleFunc("/", indexHandler)
 	http.HandleFunc("/containers", containersHandler)
